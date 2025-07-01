@@ -36,7 +36,7 @@ function getRandomInt(max) {
 }
 
 function getCardImage(cardName) {
-  return "images/" + (cardNameToImage[cardName] || "default.jpg");
+  return "imagescards/" + (cardNameToImage[cardName] || "default.jpg");
 }
 
 function shuffleArray(array) {
