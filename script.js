@@ -109,12 +109,14 @@ topicButtons.forEach(btn => {
 submitButton.addEventListener('click', () => {
   let result = `🔮 หัวข้อ: ${selectedTopic.toUpperCase()}\n\n`;
 
+  const topicKey = selectedTopic.toLowerCase();  // <-- แปลงเป็น lowercase ที่นี่
+
   selectedCards.forEach((card, index) => {
     const meaning = tarotMeanings[card.name];
     const orientation = card.reversed ? "กลับหัว" : "ปกติ";
     const text = card.reversed
-      ? meaning.reversed[selectedTopic]
-      : meaning.upright[selectedTopic];
+      ? meaning.reversed[topicKey]      // ใช้ topicKey แทน selectedTopic
+      : meaning.upright[topicKey];
 
     result += `ไพ่ใบที่ ${index + 1}: ${card.name} (${orientation})\n${text}\n\n`;
   });
