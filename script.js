@@ -75,8 +75,13 @@ function renderCards() {
     const img = document.createElement('img');
     img.src = `imagescards/${cardFileNames[cardName]}`;
     img.alt = cardName;
-    cardFront.appendChild(img);
 
+    // หมุนไพ่ถ้ากลับหัว
+    if (isReversed) {
+      img.style.transform = 'rotate(180deg)';
+    }
+
+    cardFront.appendChild(img);
     cardInner.appendChild(cardBack);
     cardInner.appendChild(cardFront);
     card.appendChild(cardInner);
@@ -85,7 +90,10 @@ function renderCards() {
       if (selectedCards.length >= 3 || card.classList.contains('revealed')) return;
 
       card.classList.add('revealed');
-      selectedCards.push({ name: card.dataset.name, reversed: card.dataset.reversed === 'true' });
+      selectedCards.push({
+        name: card.dataset.name,
+        reversed: card.dataset.reversed === 'true'
+      });
 
       if (selectedCards.length === 3) {
         submitButton.disabled = false;
@@ -96,7 +104,7 @@ function renderCards() {
   });
 }
 
-// เลือกหัวข้อเพื่อแสดงไพ่
+// เมื่อเลือกหัวข้อ
 topicButtons.forEach(btn => {
   btn.addEventListener('click', () => {
     selectedTopic = btn.dataset.topic;
@@ -104,14 +112,21 @@ topicButtons.forEach(btn => {
   });
 });
 
-// แสดงคำทำนาย
+// เมื่อคลิกดูคำทำนาย
 submitButton.addEventListener('click', () => {
+  if (!selectedTopic) {
+    resultBox.textContent = "กรุณาเลือกหัวข้อก่อน";
+    return;
+  }
+
   let result = `🔮 หัวข้อ: ${selectedTopic.toUpperCase()}\n\n`;
 
   selectedCards.forEach((card, index) => {
     const meaning = tarotMeanings[card.name];
     const orientation = card.reversed ? "กลับหัว" : "ปกติ";
-    const text = card.reversed ? meaning.reversed : meaning.upright;
+    const text = card.reversed
+      ? meaning.reversed[selectedTopic]
+      : meaning.upright[selectedTopic];
 
     result += `ไพ่ใบที่ ${index + 1}: ${card.name} (${orientation})\n${text}\n\n`;
   });
