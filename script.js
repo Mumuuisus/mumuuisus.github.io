@@ -2,12 +2,10 @@ import tarotMeanings from './tarotMeanings.js';
 
 const cardContainer = document.getElementById('card-container');
 const submitButton = document.getElementById('submitButton');
-const predictionBox = document.getElementById('result');
+const resultBox = document.getElementById('result');
 const topicButtons = document.querySelectorAll('.topic-btn');
 
-const cardNames = Object.keys(tarotMeanings);
-
-const cardNameToImage = {
+const cardFileNames = {
   "The Fool": "RWS_Tarot_00_Fool.jpg",
   "The Magician": "RWS_Tarot_01_Magician.jpg",
   "The High Priestess": "RWS_Tarot_02_High_Priestess.jpg",
@@ -32,90 +30,94 @@ const cardNameToImage = {
   "The World": "RWS_Tarot_21_World.jpg"
 };
 
-function getCardImage(cardName) {
-  return "imagescards/" + (cardNameToImage[cardName] || "default.jpg");
+let selectedTopic = null;
+let selectedCards = [];
+
+function shuffleArray(array) {
+  return array
+    .map(value => ({ value, sort: Math.random() }))
+    .sort((a, b) => a.sort - b.sort)
+    .map(({ value }) => value);
 }
 
-let selectedCards = [];
-let selectedTopic = null;
-
-function createCardElement(cardName) {
+function createCard(cardName) {
   const card = document.createElement('div');
   card.classList.add('card');
-  card.title = cardName;
 
-  const img = document.createElement('img');
-  img.src = getCardImage(cardName);
-  img.alt = cardName;
-  card.appendChild(img);
+  const isReversed = Math.random() < 0.5;
+  card.dataset.cardName = cardName;
+  card.dataset.isReversed = isReversed;
+
+  const imageUrl = `imagescards/${cardFileNames[cardName]}`;
+
+  card.innerHTML = `
+    <div class="card-inner">
+      <div class="card-back"></div>
+      <div class="card-front ${isReversed ? 'reversed' : ''}">
+        <img src="${imageUrl}" alt="${cardName}">
+      </div>
+    </div>
+  `;
 
   card.addEventListener('click', () => {
-    if (!selectedTopic) {
-      alert('กรุณาเลือกหัวข้อก่อนเลือกไพ่');
-      return;
-    }
-    if (card.classList.contains('selected')) {
-      card.classList.remove('selected');
-      selectedCards = selectedCards.filter(name => name !== cardName);
+    if (selectedCards.includes(card)) {
+      card.classList.remove('selected', 'revealed');
+      selectedCards = selectedCards.filter(c => c !== card);
     } else {
       if (selectedCards.length >= 3) {
-        alert('เลือกได้แค่ 3 ใบเท่านั้น');
+        alert("คุณสามารถเลือกไพ่ได้แค่ 3 ใบเท่านั้น");
         return;
       }
-      card.classList.add('selected');
-      selectedCards.push(cardName);
+      card.classList.add('selected', 'revealed');
+      selectedCards.push(card);
     }
-    updateSubmitButton();
+
+    submitButton.disabled = selectedCards.length !== 3;
+    resultBox.textContent = '';
   });
 
   return card;
 }
 
-function renderAllCards() {
+function displayCards() {
   cardContainer.innerHTML = '';
   selectedCards = [];
-  cardNames.forEach(cardName => {
-    const cardElem = createCardElement(cardName);
-    cardContainer.appendChild(cardElem);
+  submitButton.disabled = true;
+  resultBox.textContent = '';
+
+  const allCardNames = Object.keys(cardFileNames);
+  const shuffledNames = shuffleArray(allCardNames);
+
+  shuffledNames.forEach(name => {
+    const cardEl = createCard(name);
+    cardContainer.appendChild(cardEl);
   });
-  updateSubmitButton();
 }
 
-function updateSubmitButton() {
-  submitButton.disabled = !(selectedCards.length === 3 && selectedTopic);
+function getCardMeaning(name, isReversed, topic) {
+  const cardData = tarotMeanings[name];
+  if (!cardData) return 'ไม่พบคำทำนาย';
+  const side = isReversed ? 'reversed' : 'upright';
+  return cardData[side]?.[topic] || 'ไม่มีคำทำนายสำหรับหัวข้อนี้';
 }
-
-function generatePrediction() {
-  let result = `หัวข้อที่เลือก: ${selectedTopic}\n\n`;
-  selectedCards.forEach(cardName => {
-    const orientation = Math.random() < 0.5 ? 'upright' : 'reversed';
-    const meanings = tarotMeanings[cardName][orientation];
-    const meaningText = meanings[selectedTopic] || 'ไม่มีคำทำนายสำหรับหัวข้อนี้';
-    result += `ไพ่: ${cardName} (${orientation})\n${meaningText}\n\n`;
-  });
-  predictionBox.textContent = result;
-}
-
-// ตั้ง listener ให้ปุ่มหัวข้อ เลือกหัวข้อแล้วแสดงไพ่
-topicButtons.forEach(button => {
-  button.addEventListener('click', () => {
-    selectedTopic = button.getAttribute('data-topic');
-    predictionBox.textContent = ''; // ล้างคำทำนายเดิม
-    selectedCards = [];
-    // ล้างการเลือกไพ่เก่า
-    document.querySelectorAll('.card.selected').forEach(card => card.classList.remove('selected'));
-    updateSubmitButton();
-    renderAllCards();
-  });
-});
 
 submitButton.addEventListener('click', () => {
-  if (selectedCards.length !== 3) {
-    alert('กรุณาเลือกไพ่ 3 ใบก่อนกดทำนาย');
-    return;
-  }
-  generatePrediction();
+  if (selectedCards.length !== 3) return;
+
+  let text = `\n🃏 หัวข้อ "${selectedTopic}" คำทำนายของคุณ:\n\n`;
+  selectedCards.forEach((card, index) => {
+    const name = card.dataset.cardName;
+    const isRev = card.dataset.isReversed === 'true';
+    const meaning = getCardMeaning(name, isRev, selectedTopic);
+    text += `ไพ่ใบที่ ${index + 1}: ${name} (${isRev ? 'หัวกลับ' : 'หัวตั้ง'})\n${meaning}\n\n`;
+  });
+
+  resultBox.textContent = text;
 });
 
-// เริ่มต้นยังไม่แสดงไพ่ รอเลือกหัวข้อก่อน
-cardContainer.innerHTML = '<p>กรุณาเลือกหัวข้อด้านบนก่อน</p>';
+topicButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    selectedTopic = btn.dataset.topic;
+    displayCards();
+  });
+});
