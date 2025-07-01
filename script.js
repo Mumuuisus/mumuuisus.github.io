@@ -75,13 +75,8 @@ function renderCards() {
     const img = document.createElement('img');
     img.src = `imagescards/${cardFileNames[cardName]}`;
     img.alt = cardName;
-
-    // หมุนไพ่ถ้ากลับหัว
-    if (isReversed) {
-      img.style.transform = 'rotate(180deg)';
-    }
-
     cardFront.appendChild(img);
+
     cardInner.appendChild(cardBack);
     cardInner.appendChild(cardFront);
     card.appendChild(cardInner);
@@ -104,7 +99,6 @@ function renderCards() {
   });
 }
 
-// เมื่อเลือกหัวข้อ
 topicButtons.forEach(btn => {
   btn.addEventListener('click', () => {
     selectedTopic = btn.dataset.topic;
@@ -112,13 +106,7 @@ topicButtons.forEach(btn => {
   });
 });
 
-// เมื่อคลิกดูคำทำนาย
 submitButton.addEventListener('click', () => {
-  if (!selectedTopic) {
-    resultBox.textContent = "กรุณาเลือกหัวข้อก่อน";
-    return;
-  }
-
   let result = `🔮 หัวข้อ: ${selectedTopic.toUpperCase()}\n\n`;
 
   selectedCards.forEach((card, index) => {
