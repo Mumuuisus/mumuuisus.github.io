@@ -2,7 +2,8 @@ import tarotMeanings from './tarotMeanings.js';
 
 const cardContainer = document.getElementById('card-container');
 const submitButton = document.getElementById('submitButton');
-const predictionBox = document.getElementById('prediction-box');
+const predictionBox = document.getElementById('result');
+const topicButtons = document.querySelectorAll('.topic-btn');
 
 const cardNames = Object.keys(tarotMeanings);
 
@@ -36,20 +37,24 @@ function getCardImage(cardName) {
 }
 
 let selectedCards = [];
-let cardElements = [];
+let selectedTopic = null;
 
 function createCardElement(cardName) {
   const card = document.createElement('div');
   card.classList.add('card');
-  
+  card.title = cardName;
+
   const img = document.createElement('img');
   img.src = getCardImage(cardName);
   img.alt = cardName;
   card.appendChild(img);
-  
+
   card.addEventListener('click', () => {
+    if (!selectedTopic) {
+      alert('กรุณาเลือกหัวข้อก่อนเลือกไพ่');
+      return;
+    }
     if (card.classList.contains('selected')) {
-      // เลิกเลือก
       card.classList.remove('selected');
       selectedCards = selectedCards.filter(name => name !== cardName);
     } else {
@@ -62,45 +67,47 @@ function createCardElement(cardName) {
     }
     updateSubmitButton();
   });
-  
+
   return card;
 }
 
 function renderAllCards() {
   cardContainer.innerHTML = '';
   selectedCards = [];
-  cardElements = [];
   cardNames.forEach(cardName => {
     const cardElem = createCardElement(cardName);
     cardContainer.appendChild(cardElem);
-    cardElements.push(cardElem);
   });
   updateSubmitButton();
 }
 
 function updateSubmitButton() {
-  submitButton.disabled = selectedCards.length !== 3;
+  submitButton.disabled = !(selectedCards.length === 3 && selectedTopic);
 }
 
 function generatePrediction() {
-  let result = '';
+  let result = `หัวข้อที่เลือก: ${selectedTopic}\n\n`;
   selectedCards.forEach(cardName => {
-    // สุ่มเปิดหัวหรือตัวคว่ำ
     const orientation = Math.random() < 0.5 ? 'upright' : 'reversed';
     const meanings = tarotMeanings[cardName][orientation];
-    result += `ไพ่ ${cardName} (${orientation}):\n`;
-    result += `- ชะตาชีวิต: ${meanings.destiny}\n`;
-    result += `- ความรัก: ${meanings.love}\n`;
-    result += `- การงาน: ${meanings.career}\n`;
-    result += `- การเงิน: ${meanings.finance}\n`;
-    result += `- สุขภาพ: ${meanings.health}\n`;
-    result += `- ภาพรวม: ${meanings.general}\n\n`;
+    const meaningText = meanings[selectedTopic] || 'ไม่มีคำทำนายสำหรับหัวข้อนี้';
+    result += `ไพ่: ${cardName} (${orientation})\n${meaningText}\n\n`;
   });
   predictionBox.textContent = result;
 }
 
-// เริ่มต้นแสดงไพ่ทั้ง 22 ใบให้เลือก
-renderAllCards();
+// ตั้ง listener ให้ปุ่มหัวข้อ เลือกหัวข้อแล้วแสดงไพ่
+topicButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    selectedTopic = button.getAttribute('data-topic');
+    predictionBox.textContent = ''; // ล้างคำทำนายเดิม
+    selectedCards = [];
+    // ล้างการเลือกไพ่เก่า
+    document.querySelectorAll('.card.selected').forEach(card => card.classList.remove('selected'));
+    updateSubmitButton();
+    renderAllCards();
+  });
+});
 
 submitButton.addEventListener('click', () => {
   if (selectedCards.length !== 3) {
@@ -109,3 +116,6 @@ submitButton.addEventListener('click', () => {
   }
   generatePrediction();
 });
+
+// เริ่มต้นยังไม่แสดงไพ่ รอเลือกหัวข้อก่อน
+cardContainer.innerHTML = '<p>กรุณาเลือกหัวข้อด้านบนก่อน</p>';
