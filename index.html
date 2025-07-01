@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ดูดวงไพ่ทาโรต์</title>
+
+  <!-- โหลด AdSense script ครั้งเดียว -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5296357227730400"
+     crossorigin="anonymous"></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>เลือกหัวข้อที่คุณต้องการดูดวง</h1>
+
+  <div class="topic-buttons">
+    <button class="topic-btn" data-topic="destiny">พื้นดวง</button>
+    <button class="topic-btn" data-topic="love">ความรัก</button>
+    <button class="topic-btn" data-topic="career">การงาน/การเรียน</button>
+    <button class="topic-btn" data-topic="finance">การเงิน</button>
+    <button class="topic-btn" data-topic="health">สุขภาพ</button>
+    <button class="topic-btn" data-topic="general">ทั่วไป</button>
+  </div>
+
+  <div class="ig-contact">
+    <a href="https://www.instagram.com/mumuuisus?igsh=ZTJmdTF3anZwODU1" target="_blank">
+      📩 ติดต่อดูดวงเฉพาะเรื่องทาง IG
+    </a>
+  </div>
+
+  <h2>เลือกไพ่ 3 ใบ</h2>
+  <div id="card-container"></div>
+
+  <button id="submitButton" disabled>แสดงคำทำนาย</button>
+
+  <div id="result" class="prediction-box"></div>
+
+  <!-- InlineContent AdSense -->
+  <div style="margin: 20px auto; max-width: 728px; text-align:center;">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-5296357227730400"
+         data-ad-slot="3481331381"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+
+  <!-- FooterAd AdSense -->
+  <div style="margin: 20px auto; max-width: 728px; text-align:center;">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-5296357227730400"
+         data-ad-slot="4431435067"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+
+  <script type="module" src="script.js"></script>
+
+  <script>
+    // ป้องกันการกด F12, Ctrl+Shift+I, Ctrl+U
+    document.addEventListener('keydown', function (e) {
+      if (
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'i') ||
+        (e.ctrlKey && e.key.toLowerCase() === 'u')
+      ) {
+        e.preventDefault();
+      }
+    });
+
+    // ปิดคลิกขวา
+    document.addEventListener('contextmenu', function (e) {
+      e.preventDefault();
+    });
+  </script>
+</body>
+</html>
