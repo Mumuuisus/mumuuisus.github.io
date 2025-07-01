@@ -47,6 +47,7 @@ function createCard(cardName) {
   const isReversed = Math.random() < 0.5;
   card.dataset.cardName = cardName;
   card.dataset.isReversed = isReversed;
+  card.dataset.revealed = "false";
 
   const imageUrl = `imagescards/${cardFileNames[cardName]}`;
 
@@ -54,26 +55,22 @@ function createCard(cardName) {
     <div class="card-inner">
       <div class="card-back"></div>
       <div class="card-front ${isReversed ? 'reversed' : ''}">
-        <img src="${imageUrl}" alt="${cardName}">
+        <img src="${imageUrl}" alt="${cardName}" />
       </div>
     </div>
   `;
 
   card.addEventListener('click', () => {
-    if (selectedCards.includes(card)) {
-      card.classList.remove('selected', 'revealed');
-      selectedCards = selectedCards.filter(c => c !== card);
-    } else {
-      if (selectedCards.length >= 3) {
-        alert("คุณสามารถเลือกไพ่ได้แค่ 3 ใบเท่านั้น");
-        return;
-      }
-      card.classList.add('selected', 'revealed');
-      selectedCards.push(card);
-    }
+    const alreadyRevealed = card.dataset.revealed === "true";
+    if (alreadyRevealed || selectedCards.length >= 3) return;
 
-    submitButton.disabled = selectedCards.length !== 3;
-    resultBox.textContent = '';
+    card.classList.add('selected', 'revealed');
+    card.dataset.revealed = "true";
+    selectedCards.push(card);
+
+    if (selectedCards.length === 3) {
+      submitButton.disabled = false;
+    }
   });
 
   return card;
@@ -85,12 +82,11 @@ function displayCards() {
   submitButton.disabled = true;
   resultBox.textContent = '';
 
-  const allCardNames = Object.keys(cardFileNames);
-  const shuffledNames = shuffleArray(allCardNames);
+  const allCardNames = shuffleArray(Object.keys(cardFileNames));
 
-  shuffledNames.forEach(name => {
-    const cardEl = createCard(name);
-    cardContainer.appendChild(cardEl);
+  allCardNames.forEach(name => {
+    const card = createCard(name);
+    cardContainer.appendChild(card);
   });
 }
 
@@ -104,20 +100,21 @@ function getCardMeaning(name, isReversed, topic) {
 submitButton.addEventListener('click', () => {
   if (selectedCards.length !== 3) return;
 
-  let text = `\n🃏 หัวข้อ "${selectedTopic}" คำทำนายของคุณ:\n\n`;
-  selectedCards.forEach((card, index) => {
+  let output = `\n🃏 หัวข้อ: "${selectedTopic}"\n\n`;
+  selectedCards.forEach((card, i) => {
     const name = card.dataset.cardName;
-    const isRev = card.dataset.isReversed === 'true';
-    const meaning = getCardMeaning(name, isRev, selectedTopic);
-    text += `ไพ่ใบที่ ${index + 1}: ${name} (${isRev ? 'หัวกลับ' : 'หัวตั้ง'})\n${meaning}\n\n`;
+    const isReversed = card.dataset.isReversed === "true";
+    const meaning = getCardMeaning(name, isReversed, selectedTopic);
+
+    output += `ไพ่ใบที่ ${i + 1}: ${name} (${isReversed ? 'หัวกลับ' : 'หัวตั้ง'})\n${meaning}\n\n`;
   });
 
-  resultBox.textContent = text;
+  resultBox.textContent = output;
 });
 
-topicButtons.forEach(btn => {
-  btn.addEventListener('click', () => {
-    selectedTopic = btn.dataset.topic;
+topicButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    selectedTopic = button.dataset.topic;
     displayCards();
   });
 });
