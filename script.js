@@ -1,5 +1,11 @@
 import tarotMeanings from './tarotMeanings.js';
 
+const cardContainer = document.getElementById('card-container');
+const submitButton = document.getElementById('submitButton');
+const predictionBox = document.getElementById('prediction-box');
+
+const cardNames = Object.keys(tarotMeanings);
+
 const cardNameToImage = {
   "The Fool": "RWS_Tarot_00_Fool.jpg",
   "The Magician": "RWS_Tarot_01_Magician.jpg",
@@ -22,109 +28,84 @@ const cardNameToImage = {
   "The Moon": "RWS_Tarot_18_Moon.jpg",
   "The Sun": "RWS_Tarot_19_Sun.jpg",
   "Judgement": "RWS_Tarot_20_Judgement.jpg",
-  "The World": "RWS_Tarot_21_World.jpg",
+  "The World": "RWS_Tarot_21_World.jpg"
 };
-
-const cardContainer = document.getElementById('card-container');
-const submitButton = document.getElementById('submitButton');
-const predictionBox = document.querySelector('.prediction-box');
-
-let selectedCards = [];
-
-function getRandomInt(max) {
-  return Math.floor(Math.random() * max);
-}
 
 function getCardImage(cardName) {
   return "imagescards/" + (cardNameToImage[cardName] || "default.jpg");
 }
 
-function shuffleArray(array) {
-  for (let i = array.length -1; i > 0; i--) {
-    const j = getRandomInt(i +1);
-    [array[i], array[j]] = [array[j], array[i]];
-  }
+let selectedCards = [];
+let cardElements = [];
+
+function createCardElement(cardName) {
+  const card = document.createElement('div');
+  card.classList.add('card');
+  
+  const img = document.createElement('img');
+  img.src = getCardImage(cardName);
+  img.alt = cardName;
+  card.appendChild(img);
+  
+  card.addEventListener('click', () => {
+    if (card.classList.contains('selected')) {
+      // เลิกเลือก
+      card.classList.remove('selected');
+      selectedCards = selectedCards.filter(name => name !== cardName);
+    } else {
+      if (selectedCards.length >= 3) {
+        alert('เลือกได้แค่ 3 ใบเท่านั้น');
+        return;
+      }
+      card.classList.add('selected');
+      selectedCards.push(cardName);
+    }
+    updateSubmitButton();
+  });
+  
+  return card;
 }
 
-function generateCards() {
+function renderAllCards() {
   cardContainer.innerHTML = '';
   selectedCards = [];
-
-  // เอาชื่อไพ่ทั้งหมดมาไว้ใน array
-  const allCards = Object.keys(tarotMeanings);
-  shuffleArray(allCards);
-
-  // เอา 3 ใบแรกมาแสดง
-  const cardsToShow = allCards.slice(0, 3);
-
-  cardsToShow.forEach(cardName => {
-    // สุ่มแบบ upright หรือ reversed
-    const isReversed = Math.random() < 0.5;
-
-    const cardDiv = document.createElement('div');
-    cardDiv.classList.add('card');
-    if (isReversed) cardDiv.classList.add('reversed');
-
-    const cardInner = document.createElement('div');
-    cardInner.classList.add('card-inner');
-
-    const cardFront = document.createElement('div');
-    cardFront.classList.add('card-front');
-    const imgFront = document.createElement('img');
-    imgFront.src = getCardImage(cardName);
-    imgFront.alt = cardName;
-    cardFront.appendChild(imgFront);
-
-    const cardBack = document.createElement('div');
-    cardBack.classList.add('card-back');
-    cardBack.textContent = "ไพ่";
-
-    cardInner.appendChild(cardFront);
-    cardInner.appendChild(cardBack);
-    cardDiv.appendChild(cardInner);
-
-    cardDiv.addEventListener('click', () => {
-      cardDiv.classList.toggle('revealed');
-    });
-
-    cardContainer.appendChild(cardDiv);
-
-    selectedCards.push({
-      name: cardName,
-      reversed: isReversed
-    });
+  cardElements = [];
+  cardNames.forEach(cardName => {
+    const cardElem = createCardElement(cardName);
+    cardContainer.appendChild(cardElem);
+    cardElements.push(cardElem);
   });
-
-  submitButton.disabled = false;
-  predictionBox.textContent = '';
+  updateSubmitButton();
 }
 
-function showPredictions() {
-  if (selectedCards.length === 0) return;
-
-  let resultText = '';
-
-  selectedCards.forEach((card, index) => {
-    const meaningSet = tarotMeanings[card.name];
-    const orientation = card.reversed ? 'reversed' : 'upright';
-    const meanings = meaningSet[orientation];
-
-    resultText += `ไพ่ใบที่ ${index + 1}: ${card.name} (${orientation})\n`;
-    resultText += `คำทำนายทั่วไป: ${meanings.general}\n`;
-    resultText += `โชคชะตา: ${meanings.destiny}\n`;
-    resultText += `ความรัก: ${meanings.love}\n`;
-    resultText += `การงาน: ${meanings.career}\n`;
-    resultText += `การเงิน: ${meanings.finance}\n`;
-    resultText += `สุขภาพ: ${meanings.health}\n\n`;
-  });
-
-  predictionBox.textContent = resultText;
+function updateSubmitButton() {
+  submitButton.disabled = selectedCards.length !== 3;
 }
+
+function generatePrediction() {
+  let result = '';
+  selectedCards.forEach(cardName => {
+    // สุ่มเปิดหัวหรือตัวคว่ำ
+    const orientation = Math.random() < 0.5 ? 'upright' : 'reversed';
+    const meanings = tarotMeanings[cardName][orientation];
+    result += `ไพ่ ${cardName} (${orientation}):\n`;
+    result += `- ชะตาชีวิต: ${meanings.destiny}\n`;
+    result += `- ความรัก: ${meanings.love}\n`;
+    result += `- การงาน: ${meanings.career}\n`;
+    result += `- การเงิน: ${meanings.finance}\n`;
+    result += `- สุขภาพ: ${meanings.health}\n`;
+    result += `- ภาพรวม: ${meanings.general}\n\n`;
+  });
+  predictionBox.textContent = result;
+}
+
+// เริ่มต้นแสดงไพ่ทั้ง 22 ใบให้เลือก
+renderAllCards();
 
 submitButton.addEventListener('click', () => {
-  showPredictions();
-  submitButton.disabled = true;
+  if (selectedCards.length !== 3) {
+    alert('กรุณาเลือกไพ่ 3 ใบก่อนกดทำนาย');
+    return;
+  }
+  generatePrediction();
 });
-
-// เริ่มต้นแสดงไพ่ตอนโหลดเว็บ
-generateCards();
